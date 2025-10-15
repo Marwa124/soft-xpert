@@ -62,4 +62,15 @@ Seed initial data
 
 Generate JWT secret
 
+## Option 1: 
+Run 
+```bash
+php artisan serve
+```
+
+## Option 2: 
+Docker 
+```bash
+sudo docker compose up -d --build
+```
 
