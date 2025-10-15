@@ -1,0 +1,39 @@
+<?php
+
+use App\Http\Middleware\AuthCookie;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\AuthTokenOnly;
+use App\Http\Middleware\TaskPermission;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->alias([
+            'AuthMiddleware' => Authenticate::class,
+            'auth.cookie' => AuthCookie::class,
+            'auth.token-only' => AuthTokenOnly::class,
+            'task.permission' => TaskPermission::class,
+
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class
+        ]);
+    })
+    
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $e->getMessage()], 401);
+            }
+        });
+    })->create();
